@@ -1,24 +1,40 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { EmptyState } from '../../components/EmptyState';
-import { ErrorBanner } from '../../components/ErrorBanner';
-import { PageHeader } from '../../components/PageHeader';
-import { PageLoader } from '../../components/PageLoader';
-import { ActivityTypeBadge, ParticipationStatusBadge } from '../../components/StatusBadge';
-import { getErrorMessage } from '../../lib/api';
+import { Link, useNavigate } from 'react-router-dom';
+import { Award, CalendarClock, MapPin, Plus } from 'lucide-react';
+import { PageHead } from '@/components/blocks/shell';
+import { StatCard } from '@/components/blocks/dashboard';
+import { bdTokens } from '@/components/blocks/dashboard/tokens';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ErrorNotice, SuccessNotice } from '@/components/Notice';
+import {
+  ActivityPhaseBadge,
+  ActivityTypeBadge,
+  ParticipationStatusBadge,
+} from '@/components/StatusBadge';
+import { getErrorMessage } from '@/lib/api';
 import {
   activityPhaseLabels,
   formatDateTime,
   formatDays,
   getActivityPhase,
-} from '../../lib/format';
-import type { Activity, MyParticipation, Summary } from '../../lib/types';
+} from '@/lib/format';
+import type { Activity, MyParticipation, Summary } from '@/lib/types';
 import { useAuth } from '../auth/AuthContext';
 import { participationsApi } from '../participations/participationsApi';
 import { activitiesApi } from './activitiesApi';
 
 export function ActivitiesPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const isStudent = user?.role === 'Student';
 
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -75,107 +91,164 @@ export function ActivitiesPage() {
     }
   }
 
+  const isStaff = user?.role === 'Organizer' || user?.role === 'Admin';
+
   return (
-    <>
-      <PageHeader
-        title={`Xin chào, ${user?.fullName ?? 'bạn'}`}
-        description="Danh sách hoạt động công tác xã hội và ngày lao động."
-      >
-        {(user?.role === 'Organizer' || user?.role === 'Admin') && (
-          <Link className="btn btn-primary" to="/activities/new">
-            + Tạo hoạt động
-          </Link>
-        )}
-      </PageHeader>
-
-      {isStudent && summary && (
-        <section className="stat-grid" aria-label="Tiến độ của tôi">
-          <div className="stat-card">
-            <span>Ngày CTXH</span>
-            <strong>{formatDays(summary.ctxhDays)}</strong>
-          </div>
-          <div className="stat-card">
-            <span>Ngày lao động</span>
-            <strong>{formatDays(summary.laoDongDays)}</strong>
-          </div>
-          <div className="stat-card">
-            <span>Hoạt động đã xác nhận</span>
-            <strong>{summary.verifiedActivities}</strong>
-          </div>
-        </section>
-      )}
-
-      {notice && <div className="alert alert-success">{notice}</div>}
-      {error && <ErrorBanner message={error} onRetry={() => void load()} />}
-
-      {loading ? (
-        <PageLoader />
-      ) : activities.length === 0 ? (
-        <EmptyState
-          title="Chưa có hoạt động nào"
-          description="Cán bộ Đoàn - Hội có thể tạo hoạt động mới để sinh viên đăng ký."
+    <div className="h-full overflow-y-auto p-3 sm:p-4">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3">
+        <PageHead
+          title={`Xin chào, ${user?.fullName ?? 'bạn'}`}
+          description="Danh sách hoạt động công tác xã hội và ngày lao động."
+          actions={
+            isStaff && (
+              <Button size="toolbar" onClick={() => navigate('/activities/new')}>
+                <Plus />
+                Tạo hoạt động
+              </Button>
+            )
+          }
         />
-      ) : (
-        <section className="activity-grid">
-          {activities.map((activity) => {
-            const phase = getActivityPhase(activity.startAt, activity.endAt);
-            const myParticipation = mineByActivity.get(activity.id);
 
-            return (
-              <article className="activity-card" key={activity.id}>
-                <div className="activity-card-head">
-                  <ActivityTypeBadge type={activity.type} />
-                  <span className={`phase phase-${phase.toLowerCase()}`}>
-                    {activityPhaseLabels[phase]}
-                  </span>
-                </div>
+        {isStudent && summary && (
+          <section aria-label="Tiến độ của tôi" className="grid gap-3 sm:grid-cols-3">
+            <StatCard
+              className={bdTokens}
+              label="Ngày CTXH"
+              value={summary.ctxhDays.toLocaleString('vi-VN')}
+              unit="ngày"
+              description="Đã được xác nhận"
+              onClick={() => navigate('/me')}
+            />
+            <StatCard
+              className={bdTokens}
+              label="Ngày lao động"
+              value={summary.laoDongDays.toLocaleString('vi-VN')}
+              unit="ngày"
+              description="Đã được xác nhận"
+              onClick={() => navigate('/me')}
+            />
+            <StatCard
+              className={bdTokens}
+              label="Hoạt động đã xác nhận"
+              value={summary.verifiedActivities}
+              description="Tính vào tiến độ"
+              highlight
+              onClick={() => navigate('/me')}
+            />
+          </section>
+        )}
 
-                <h3>
-                  <Link to={`/activities/${activity.id}`}>{activity.title}</Link>
-                </h3>
+        {notice && <SuccessNotice message={notice} />}
+        {error && <ErrorNotice message={error} onRetry={() => void load()} />}
 
-                <dl className="meta-list">
-                  <div>
-                    <dt>Địa điểm</dt>
-                    <dd>{activity.location}</dd>
-                  </div>
-                  <div>
-                    <dt>Thời gian</dt>
-                    <dd>
-                      {formatDateTime(activity.startAt)} → {formatDateTime(activity.endAt)}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Điểm cộng</dt>
-                    <dd>{formatDays(activity.days)}</dd>
-                  </div>
-                </dl>
+        {loading ? (
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {[0, 1, 2, 3].map((index) => (
+              <Card key={index}>
+                <CardHeader className="gap-2">
+                  <Skeleton className="h-5 w-28" />
+                  <Skeleton className="h-6 w-3/4" />
+                </CardHeader>
+                <CardContent className="grid gap-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : activities.length === 0 ? (
+          <Card>
+            <EmptyState
+              title="Chưa có hoạt động nào"
+              description="Cán bộ Đoàn - Hội có thể tạo hoạt động mới để sinh viên đăng ký."
+              action={
+                isStaff ? (
+                  <Button onClick={() => navigate('/activities/new')}>
+                    <Plus />
+                    Tạo hoạt động
+                  </Button>
+                ) : undefined
+              }
+            />
+          </Card>
+        ) : (
+          <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {activities.map((activity) => {
+              const phase = getActivityPhase(activity.startAt, activity.endAt);
+              const myParticipation = mineByActivity.get(activity.id);
 
-                <div className="activity-card-foot">
-                  {myParticipation ? (
-                    <ParticipationStatusBadge status={myParticipation.status} />
-                  ) : isStudent ? (
-                    <button
-                      type="button"
-                      className="btn btn-primary btn-sm"
-                      disabled={busyId === activity.id}
-                      onClick={() => void onRegister(activity.id)}
-                    >
-                      {busyId === activity.id ? 'Đang đăng ký...' : 'Đăng ký'}
-                    </button>
-                  ) : (
-                    <span />
-                  )}
+              return (
+                <Card key={activity.id} className="flex flex-col">
+                  <CardHeader className="gap-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <ActivityTypeBadge type={activity.type} />
+                      <ActivityPhaseBadge phase={phase} />
+                    </div>
+                    <CardTitle className="text-title leading-snug">
+                      <Link
+                        to={`/activities/${activity.id}`}
+                        className="text-foreground hover:text-primary"
+                      >
+                        {activity.title}
+                      </Link>
+                    </CardTitle>
+                  </CardHeader>
 
-                  <Link className="btn btn-ghost btn-sm" to={`/activities/${activity.id}`}>
-                    Chi tiết
-                  </Link>
-                </div>
-              </article>
-            );
-          })}
-        </section>
-      )}
-    </>
+                  <CardContent className="flex-1">
+                    <dl className="grid gap-2 text-body">
+                      <div className="flex items-start gap-2">
+                        <MapPin aria-hidden className="mt-0.5 size-4 flex-none text-muted-foreground" />
+                        <div className="min-w-0">
+                          <dt className="sr-only">Địa điểm</dt>
+                          <dd className="truncate text-foreground">{activity.location}</dd>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <CalendarClock aria-hidden className="mt-0.5 size-4 flex-none text-muted-foreground" />
+                        <div className="min-w-0">
+                          <dt className="sr-only">Thời gian</dt>
+                          <dd className="text-muted-foreground">
+                            {formatDateTime(activity.startAt)} → {formatDateTime(activity.endAt)}
+                          </dd>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <Award aria-hidden className="mt-0.5 size-4 flex-none text-muted-foreground" />
+                        <div>
+                          <dt className="sr-only">Điểm cộng</dt>
+                          <dd className="text-muted-foreground">{formatDays(activity.days)}</dd>
+                        </div>
+                      </div>
+                    </dl>
+                  </CardContent>
+
+                  <CardFooter className="mt-auto flex-wrap justify-between gap-2 border-t pt-3">
+                    {myParticipation ? (
+                      <ParticipationStatusBadge status={myParticipation.status} />
+                    ) : isStudent ? (
+                      <Button
+                        size="sm"
+                        disabled={busyId === activity.id || phase === 'DaKetThuc'}
+                        onClick={() => void onRegister(activity.id)}
+                      >
+                        {busyId === activity.id ? 'Đang đăng ký...' : 'Đăng ký'}
+                      </Button>
+                    ) : (
+                      <span className="text-small text-muted-foreground">
+                        {activityPhaseLabels[phase]}
+                      </span>
+                    )}
+
+                    <Button asChild size="sm" variant="ghost">
+                      <Link to={`/activities/${activity.id}`}>Chi tiết</Link>
+                    </Button>
+                  </CardFooter>
+                </Card>
+              );
+            })}
+          </section>
+        )}
+      </div>
+    </div>
   );
 }

@@ -1,11 +1,16 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { ErrorBanner } from '../../components/ErrorBanner';
-import { PageHeader } from '../../components/PageHeader';
-import { Spinner } from '../../components/PageLoader';
-import { getErrorMessage } from '../../lib/api';
-import { defaultActivityWindow } from '../../lib/format';
-import type { ActivityType } from '../../lib/types';
+import { Loader2 } from 'lucide-react';
+import { PageHead } from '@/components/blocks/shell';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
+import { ErrorNotice } from '@/components/Notice';
+import { getErrorMessage } from '@/lib/api';
+import { defaultActivityWindow } from '@/lib/format';
+import type { ActivityType } from '@/lib/types';
 import { useAuth } from '../auth/AuthContext';
 import { activitiesApi } from './activitiesApi';
 
@@ -62,92 +67,105 @@ export function CreateActivityPage() {
   }
 
   return (
-    <>
-      <PageHeader
-        title="Tạo hoạt động"
-        description="Sau khi tạo, hệ thống sinh mã QR để sinh viên điểm danh tại địa điểm."
-      />
+    <div className="h-full overflow-y-auto p-3 sm:p-4">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-3">
+        <PageHead
+          title="Tạo hoạt động"
+          description="Sau khi tạo, hệ thống sinh mã QR để sinh viên điểm danh tại địa điểm."
+        />
 
-      {error && <ErrorBanner message={error} />}
+        {error && <ErrorNotice message={error} />}
 
-      <form className="card form form-grid" onSubmit={onSubmit}>
-        <label className="field field-span-2">
-          <span>Tên hoạt động</span>
-          <input
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            placeholder="VD: Mùa hè xanh - Dọn vệ sinh bờ sông"
-            required
-          />
-        </label>
+        <Card>
+          <form onSubmit={onSubmit} noValidate>
+            <CardContent className="grid gap-4 py-4 sm:grid-cols-2">
+              <div className="grid gap-1.5 sm:col-span-2">
+                <Label htmlFor="activity-title">Tên hoạt động</Label>
+                <Input
+                  id="activity-title"
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder="VD: Mùa hè xanh - Dọn vệ sinh bờ sông"
+                  required
+                />
+              </div>
 
-        <label className="field">
-          <span>Loại hoạt động</span>
-          <select
-            value={type}
-            onChange={(event) => setType(event.target.value as ActivityType)}
-          >
-            <option value="CongTacXaHoi">Công tác xã hội</option>
-            <option value="LaoDong">Ngày lao động</option>
-          </select>
-        </label>
+              <div className="grid gap-1.5">
+                <Label htmlFor="activity-type">Loại hoạt động</Label>
+                <NativeSelect
+                  id="activity-type"
+                  value={type}
+                  onChange={(event) => setType(event.target.value as ActivityType)}
+                >
+                  <option value="CongTacXaHoi">Công tác xã hội</option>
+                  <option value="LaoDong">Ngày lao động</option>
+                </NativeSelect>
+              </div>
 
-        <label className="field">
-          <span>Số ngày được cộng</span>
-          <input
-            type="number"
-            min="0.5"
-            step="0.5"
-            value={days}
-            onChange={(event) => setDays(event.target.value)}
-            required
-          />
-        </label>
+              <div className="grid gap-1.5">
+                <Label htmlFor="activity-days">Số ngày được cộng</Label>
+                <Input
+                  id="activity-days"
+                  type="number"
+                  min="0.5"
+                  step="0.5"
+                  value={days}
+                  onChange={(event) => setDays(event.target.value)}
+                  required
+                />
+              </div>
 
-        <label className="field field-span-2">
-          <span>Địa điểm</span>
-          <input
-            value={location}
-            onChange={(event) => setLocation(event.target.value)}
-            placeholder="VD: Cao Lãnh"
-            required
-          />
-        </label>
+              <div className="grid gap-1.5 sm:col-span-2">
+                <Label htmlFor="activity-location">Địa điểm</Label>
+                <Input
+                  id="activity-location"
+                  value={location}
+                  onChange={(event) => setLocation(event.target.value)}
+                  placeholder="VD: Cao Lãnh"
+                  required
+                />
+              </div>
 
-        <label className="field">
-          <span>Bắt đầu</span>
-          <input
-            type="datetime-local"
-            value={startAt}
-            onChange={(event) => setStartAt(event.target.value)}
-            required
-          />
-        </label>
+              <div className="grid gap-1.5">
+                <Label htmlFor="activity-start">Bắt đầu</Label>
+                <Input
+                  id="activity-start"
+                  type="datetime-local"
+                  value={startAt}
+                  onChange={(event) => setStartAt(event.target.value)}
+                  required
+                />
+              </div>
 
-        <label className="field">
-          <span>Kết thúc</span>
-          <input
-            type="datetime-local"
-            value={endAt}
-            onChange={(event) => setEndAt(event.target.value)}
-            required
-          />
-        </label>
+              <div className="grid gap-1.5">
+                <Label htmlFor="activity-end">Kết thúc</Label>
+                <Input
+                  id="activity-end"
+                  type="datetime-local"
+                  value={endAt}
+                  onChange={(event) => setEndAt(event.target.value)}
+                  required
+                />
+              </div>
+            </CardContent>
 
-        <div className="form-actions field-span-2">
-          <button className="btn btn-primary" type="submit" disabled={busy}>
-            {busy ? <Spinner /> : 'Tạo hoạt động'}
-          </button>
-          <button
-            className="btn btn-ghost"
-            type="button"
-            onClick={() => navigate('/')}
-            disabled={busy}
-          >
-            Hủy
-          </button>
-        </div>
-      </form>
-    </>
+            <CardFooter className="justify-end gap-2 border-t pt-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate('/')}
+                disabled={busy}
+              >
+                Hủy
+              </Button>
+              <Button type="submit" disabled={busy}>
+                {busy && <Loader2 className="animate-spin" />}
+                {busy ? 'Đang tạo...' : 'Tạo hoạt động'}
+              </Button>
+            </CardFooter>
+          </form>
+        </Card>
+      </div>
+    </div>
   );
 }
