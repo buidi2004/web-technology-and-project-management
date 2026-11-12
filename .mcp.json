@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "dthu-ui": {
+      "type": "http",
+      "url": "https://dthu-kit.anhdev99.com/mcp"
+    }
+  }
+}
