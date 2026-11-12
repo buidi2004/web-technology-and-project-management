@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Ctxh.Api/Ctxh.Api.csproj" />
+    <Project Path="src/Ctxh.Application/Ctxh.Application.csproj" />
+    <Project Path="src/Ctxh.Domain/Ctxh.Domain.csproj" />
+    <Project Path="src/Ctxh.Infrastructure/Ctxh.Infrastructure.csproj" />
+    <Project Path="tests/Ctxh.Application.UnitTests/Ctxh.Application.UnitTests.csproj" />
+    <Project Path="tests/Ctxh.Domain.UnitTests/Ctxh.Domain.UnitTests.csproj" />
+  </Folder>
+</Solution>

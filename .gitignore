@@ -1,0 +1,47 @@
+# dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# build output
+dist/
+build/
+bin/
+obj/
+*.tsbuildinfo
+
+# expo / react native
+.expo/
+web-build/
+.metro-health-check*
+/ios
+/android
+
+# logs
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# local env files
+.env
+.env.*
+!.env.example
+*.local
+
+# dotnet
+*.user
+*.suo
+.vs/
+.vscode/
+TestResults/
+
+# macOS
+.DS_Store
+
+# secrets / certs
+*.pem
+*.key
+*.p12
+*.jks
+*.mobileprovision

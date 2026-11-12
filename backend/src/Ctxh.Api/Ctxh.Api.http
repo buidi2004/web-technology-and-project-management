@@ -1,0 +1,73 @@
+@base = http://localhost:5000
+
+### Đăng nhập sinh viên
+# @name login
+POST {{base}}/api/auth/login
+Content-Type: application/json
+
+{
+  "studentCode": "SV001",
+  "password": "Sv@12345"
+}
+
+### Đăng nhập cán bộ
+# @name staff
+POST {{base}}/api/auth/login
+Content-Type: application/json
+
+{
+  "studentCode": "GV001",
+  "password": "Org@12345"
+}
+
+### Danh sách hoạt động
+GET {{base}}/api/activities
+Authorization: Bearer {{login.response.body.token}}
+
+### Tạo hoạt động (cán bộ)
+POST {{base}}/api/activities
+Authorization: Bearer {{staff.response.body.token}}
+Content-Type: application/json
+
+{
+  "title": "Ngày lao động - Khuôn viên trường",
+  "type": "LaoDong",
+  "days": 0.5,
+  "location": "Sân trường",
+  "startAt": "2026-11-12T01:00:00Z",
+  "endAt": "2026-11-12T06:00:00Z"
+}
+
+### QR của hoạt động 1 (cán bộ)
+GET {{base}}/api/activities/1/qr
+Authorization: Bearer {{staff.response.body.token}}
+
+### Đăng ký hoạt động 1 (sinh viên)
+POST {{base}}/api/activities/1/register
+Authorization: Bearer {{login.response.body.token}}
+
+### Điểm danh (sinh viên)
+POST {{base}}/api/activities/1/check-in
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "code": "demo-ctxh-2026"
+}
+
+### Danh sách tham gia của hoạt động 1 (cán bộ)
+GET {{base}}/api/activities/1/participations
+Authorization: Bearer {{staff.response.body.token}}
+
+### Xác nhận lượt tham gia 1 (cán bộ)
+POST {{base}}/api/participations/1/verify
+Authorization: Bearer {{staff.response.body.token}}
+Content-Type: application/json
+
+{
+  "approve": true
+}
+
+### Tổng hợp của tôi
+GET {{base}}/api/me/summary
+Authorization: Bearer {{login.response.body.token}}
